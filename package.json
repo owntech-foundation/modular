@@ -41,7 +41,7 @@
   "_comment_build_files": "Release packaging includes runtime + docs/tools under app/; tests/dev artifacts are excluded via build.files below.",
   "devDependencies": {
     "electron": "^36.4.0",
-    "electron-builder": "^26.0.12",
+    "electron-builder": "^26.15.3",
     "playwright": "^1.50.0"
   },
   "build": {
@@ -68,8 +68,10 @@
       "icon": "app/assets/icon.ico"
     },
     "mac": {
-      "x64ArchFiles": "**/node_modules/@node-usb/usb-darwin-arm64/**",
-      "icon": "app/assets/icon.png"
+      "x64ArchFiles": [
+        "**/node_modules/@node-usb/usb-darwin-arm64/**"
+      ],
+      "icon": "app/assets/icon.icns"
     }
   }
 }
