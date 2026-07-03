@@ -2530,10 +2530,35 @@ ipcMain.handle('perf-log-snapshot', async () => {
     return snap;
 });
 
-// Path to mcumgr binary, assumes it is bundled alongside the app in a tools folder
-const mcumgrBinary = process.platform === 'win32' ? 'mcumgr.exe'
-    : process.platform === 'darwin' ? 'mcumgr-mac' : 'mcumgr';
-const mcumgrPath = path.join(__dirname, 'tools', mcumgrBinary);
+function getBundledMcumgrCandidates() {
+    if (process.platform === 'win32') {
+        return ['mcumgr.exe'];
+    }
+
+    if (process.platform === 'darwin') {
+        if (process.arch === 'arm64') {
+            return ['mcumgr-mac-arm64'];
+        }
+        return ['mcumgr-mac-x64'];
+    }
+
+    if (process.platform === 'linux') {
+        if (process.arch === 'arm64') {
+            return ['mcumgr-linux-arm64', 'mcumgr'];
+        }
+        if (process.arch === 'arm') {
+            return ['mcumgr-linux-armv7', 'mcumgr'];
+        }
+        if (process.arch === 'ia32') {
+            return ['mcumgr-linux-x86', 'mcumgr'];
+        }
+        return ['mcumgr-linux-x64', 'mcumgr'];
+    }
+
+    return ['mcumgr'];
+}
+
+const mcumgrCandidates = getBundledMcumgrCandidates();
 let activeFlashId = 0;
 let activeFlashSender = null;
 let activeFlashPort = null;
@@ -2542,7 +2567,10 @@ let activeFlashCanceled = false;
 function resolveMcumgrPath(userPath) {
     if (userPath && typeof userPath === 'string') return userPath;
     if (process.env.MCUMGR_PATH) return process.env.MCUMGR_PATH;
-    if (fs.existsSync(mcumgrPath)) return mcumgrPath;
+    for (const mcumgrBinary of mcumgrCandidates) {
+        const bundledPath = path.join(__dirname, 'tools', mcumgrBinary);
+        if (fs.existsSync(bundledPath)) return bundledPath;
+    }
     // Fallback to PATH on Linux when bundled binary is missing.
     return 'mcumgr';
 }
