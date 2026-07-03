@@ -68,6 +68,7 @@
       "icon": "app/assets/icon.ico"
     },
     "mac": {
+      "x64ArchFiles": "**/node_modules/@node-usb/usb-darwin-arm64/**",
       "icon": "app/assets/icon.png"
     }
   }
