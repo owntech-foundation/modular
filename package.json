@@ -69,7 +69,7 @@
       "icon": "app/assets/icon.ico"
     },
     "mac": {
-      "x64ArchFiles": "**/node_modules/@node-usb/usb-darwin-arm64/**",
+      "x64ArchFiles": "{**/node_modules/@node-usb/usb-darwin-arm64/**,**/app/tools/mcumgr-mac-arm64,**/app/tools/mcumgr-mac-x64}",
       "icon": "app/assets/icon.icns"
     }
   }
