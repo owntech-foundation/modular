@@ -26,9 +26,18 @@ jobs:
               dist/*.yml
               dist/*.blockmap
           - os: macos-latest
-            label: macOS universal
-            artifact_name: modular-macos-universal
-            build_command: npx electron-builder --mac dmg zip --universal --publish never
+            label: macOS x64
+            artifact_name: modular-macos-x64
+            build_command: npx electron-builder --mac dmg zip --x64 --publish never
+            artifact_glob: |
+              dist/*.dmg
+              dist/*.zip
+              dist/*.yml
+              dist/*.blockmap
+          - os: macos-latest
+            label: macOS arm64
+            artifact_name: modular-macos-arm64
+            build_command: npx electron-builder --mac dmg zip --arm64 --publish never
             artifact_glob: |
               dist/*.dmg
               dist/*.zip
