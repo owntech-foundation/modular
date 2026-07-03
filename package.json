@@ -6,6 +6,7 @@
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder",
+    "pack-mac": "electron-builder --mac --universal",
     "test:ui": "playwright test",
     "test:protocol": "node tests/unit/twist_protocol.test.js",
     "test:protocol:preview": "node tests/unit/twist_protocol_preview.js",
@@ -41,7 +42,7 @@
   "_comment_build_files": "Release packaging includes runtime + docs/tools under app/; tests/dev artifacts are excluded via build.files below.",
   "devDependencies": {
     "electron": "^36.4.0",
-    "electron-builder": "^26.0.12",
+    "electron-builder": "^26.15.3",
     "playwright": "^1.50.0"
   },
   "build": {
@@ -68,6 +69,7 @@
       "icon": "app/assets/icon.ico"
     },
     "mac": {
+      "x64ArchFiles": "**/node_modules/@node-usb/usb-darwin-arm64/**",
       "icon": "app/assets/icon.icns"
     }
   }
