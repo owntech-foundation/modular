@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ${{ inputs.platform == 'macos' && 'macos-latest' || inputs.platform == 'windows' && 'windows-latest' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.platform == 'macos' && 'macos-latest' || inputs.platform == 'windows' && 'windows-2022' || 'ubuntu-latest' }}
     env:
       CSC_IDENTITY_AUTO_DISCOVERY: "false"
     steps:
@@ -44,7 +44,7 @@ jobs:
           if [ "${{ inputs.platform }}" = "windows" ]; then
             npx electron-builder --win nsis --x64 --publish never
           elif [ "${{ inputs.platform }}" = "macos" ]; then
-            npx electron-builder --mac dmg zip --universal --publish never
+            npx electron-builder --mac dmg zip --arm64 --publish never
           else
             npx electron-builder --linux AppImage --publish never
           fi
@@ -61,4 +61,3 @@ jobs:
             dist/*.yml
             dist/*.blockmap
           if-no-files-found: error
-

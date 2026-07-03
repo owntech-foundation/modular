@@ -48,6 +48,7 @@
     "appId": "com.modular.app",
     "productName": "Modular",
     "asar": false,
+    "npmRebuild": false,
     "icon": "app/assets/icon.png",
     "files": [
       "app/**",
