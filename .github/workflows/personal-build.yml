@@ -1,0 +1,64 @@
+name: Personal Unsigned Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "Platform to build"
+        type: choice
+        required: true
+        default: linux
+        options:
+          - linux
+          - macos
+          - windows
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ${{ inputs.platform == 'macos' && 'macos-latest' || inputs.platform == 'windows' && 'windows-latest' || 'ubuntu-latest' }}
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Linux packaging tools
+        if: ${{ inputs.platform == 'linux' }}
+        run: sudo apt-get update && sudo apt-get install -y icnsutils graphicsmagick xz-utils rpm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build unsigned artifacts
+        shell: bash
+        run: |
+          if [ "${{ inputs.platform }}" = "windows" ]; then
+            npx electron-builder --win nsis --x64 --publish never
+          elif [ "${{ inputs.platform }}" = "macos" ]; then
+            npx electron-builder --mac dmg zip --universal --publish never
+          else
+            npx electron-builder --linux AppImage --publish never
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: modular-${{ inputs.platform }}-unsigned
+          path: |
+            dist/*.dmg
+            dist/*.zip
+            dist/*.exe
+            dist/*.AppImage
+            dist/*.yml
+            dist/*.blockmap
+          if-no-files-found: error
+

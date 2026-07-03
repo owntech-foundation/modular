@@ -67,7 +67,7 @@
       "icon": "app/assets/icon.ico"
     },
     "mac": {
-      "icon": "app/assets/icon.icns"
+      "icon": "app/assets/icon.png"
     }
   }
 }

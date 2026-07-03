@@ -1,0 +1,26 @@
+name: Generate sha256 hashes for release files
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - name: Generate and upload SHA256 hashes
+        run: |
+          mkdir release-assets
+          cd release-assets
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY"
+          find . -maxdepth 1 -type f ! -name 'Files-SHA256-Hashes.txt' -print0 \
+            | xargs -0 sha256sum > ../Files-SHA256-Hashes.txt
+          cd ..
+          gh release upload "$TAG" Files-SHA256-Hashes.txt \
+            --repo "$GITHUB_REPOSITORY" --clobber

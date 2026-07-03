@@ -3,50 +3,90 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
   workflow_dispatch:
 
 permissions:
-  contents: write  # Required for GitHub Releases
+  contents: write
 
 jobs:
   build:
+    name: Build ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
-            target: linux
+            label: Linux
+            artifact_name: modular-linux
+            build_command: npx electron-builder --linux AppImage --publish never
+            artifact_glob: |
+              dist/*.AppImage
+              dist/*.yml
+              dist/*.blockmap
+          - os: macos-latest
+            label: macOS
+            artifact_name: modular-macos
+            build_command: npx electron-builder --mac dmg zip --universal --publish never
+            artifact_glob: |
+              dist/*.dmg
+              dist/*.zip
+              dist/*.yml
+              dist/*.blockmap
           - os: windows-latest
-            target: win
-    runs-on: ${{ matrix.os }}
+            label: Windows
+            artifact_name: modular-windows
+            build_command: npx electron-builder --win nsis --x64 --publish never
+            artifact_glob: |
+              dist/*.exe
+              dist/*.yml
+              dist/*.blockmap
+
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
+          cache: npm
 
-      - run: npm ci
+      - name: Install Linux packaging tools
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y icnsutils graphicsmagick xz-utils rpm
 
-      - run: npm run dist -- --${{ matrix.target }}
+      - name: Install dependencies
+        run: npm ci
 
-      - uses: actions/upload-artifact@v4
+      - name: Build distributables
+        run: ${{ matrix.build_command }}
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.target }}-artifact
-          path: |
-            dist/*.AppImage
-            dist/*.exe
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_glob }}
+          if-no-files-found: error
 
   release:
+    name: Publish GitHub release
     needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
         with:
-          path: ./artifacts
+          path: artifacts
+          merge-multiple: true
 
-      - uses: softprops/action-gh-release@v1
+      - name: Publish release assets
+        uses: softprops/action-gh-release@v2
         with:
-          files: ./artifacts/**/*
+          files: artifacts/*
+          generate_release_notes: true
